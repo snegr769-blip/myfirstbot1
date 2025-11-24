@@ -79,12 +79,11 @@ SHOP_ITEMS = {
     ]
 }
 
-
 # Инициализация базы данных
 def init_db():
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
-
+    
     # Таблица для RP-команд
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS rp_commands (
@@ -94,7 +93,7 @@ def init_db():
             trigger_word TEXT NOT NULL UNIQUE
         )
     ''')
-
+    
     # Таблица для мутов
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS mutes (
@@ -105,7 +104,7 @@ def init_db():
             PRIMARY KEY (user_id, chat_id)
         )
     ''')
-
+    
     # Таблица для варнов
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS warns (
@@ -117,7 +116,7 @@ def init_db():
             PRIMARY KEY (user_id, chat_id, timestamp)
         )
     ''')
-
+    
     # Таблица для правил чатов
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS chat_rules (
@@ -127,7 +126,7 @@ def init_db():
             set_time DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
-
+    
     # Таблица для профилей пользователей
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS user_profiles (
@@ -138,7 +137,7 @@ def init_db():
             PRIMARY KEY (user_id, chat_id)
         )
     ''')
-
+    
     # Таблица для предметов пользователей
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS user_items (
@@ -150,7 +149,7 @@ def init_db():
             PRIMARY KEY (user_id, chat_id, item_emoji)
         )
     ''')
-
+    
     # Добавляем несколько базовых команд
     cursor.execute('''
         INSERT OR IGNORE INTO rp_commands (emoji, action_text, trigger_word) 
@@ -159,10 +158,9 @@ def init_db():
         ('😘', 'поцеловал', 'поцеловать'),
         ('👋', 'помахал', 'помахать')
     ''')
-
+    
     conn.commit()
     conn.close()
-
 
 # Функция для получения RP-команды по триггеру
 def get_rp_command(trigger_word):
@@ -173,7 +171,6 @@ def get_rp_command(trigger_word):
     conn.close()
     return result
 
-
 # Функция для получения всех RP-команд
 def get_all_rp_commands():
     conn = sqlite3.connect('rp_bot.db')
@@ -183,14 +180,13 @@ def get_all_rp_commands():
     conn.close()
     return results
 
-
 # Функция для добавления новой RP-команды
 def add_rp_command(emoji, action_text, trigger_word):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
     try:
-        cursor.execute('INSERT INTO rp_commands (emoji, action_text, trigger_word) VALUES (?, ?, ?)',
-                       (emoji, action_text, trigger_word))
+        cursor.execute('INSERT INTO rp_commands (emoji, action_text, trigger_word) VALUES (?, ?, ?)', 
+                      (emoji, action_text, trigger_word))
         conn.commit()
         success = True
     except sqlite3.IntegrityError:
@@ -198,16 +194,14 @@ def add_rp_command(emoji, action_text, trigger_word):
     conn.close()
     return success
 
-
 # Функции для мутов
 def add_mute(user_id, chat_id, unmute_time, reason=""):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
     cursor.execute('INSERT OR REPLACE INTO mutes (user_id, chat_id, unmute_time, reason) VALUES (?, ?, ?, ?)',
-                   (user_id, chat_id, unmute_time.isoformat(), reason))
+                  (user_id, chat_id, unmute_time.isoformat(), reason))
     conn.commit()
     conn.close()
-
 
 def get_mute(user_id, chat_id):
     conn = sqlite3.connect('rp_bot.db')
@@ -217,7 +211,6 @@ def get_mute(user_id, chat_id):
     conn.close()
     return result
 
-
 def remove_mute(user_id, chat_id):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
@@ -225,26 +218,24 @@ def remove_mute(user_id, chat_id):
     conn.commit()
     conn.close()
 
-
 # Функции для варнов
 def add_warn(user_id, chat_id, admin_id, reason=""):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
     cursor.execute('INSERT INTO warns (user_id, chat_id, admin_id, reason) VALUES (?, ?, ?, ?)',
-                   (user_id, chat_id, admin_id, reason))
+                  (user_id, chat_id, admin_id, reason))
     conn.commit()
     cursor.execute('SELECT COUNT(*) FROM warns WHERE user_id = ? AND chat_id = ?', (user_id, chat_id))
     warn_count = cursor.fetchone()[0]
     conn.close()
     return warn_count
 
-
 def remove_warn(user_id, chat_id):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
     cursor.execute('SELECT COUNT(*) FROM warns WHERE user_id = ? AND chat_id = ?', (user_id, chat_id))
     current_count = cursor.fetchone()[0]
-
+    
     if current_count > 0:
         cursor.execute('''
             DELETE FROM warns 
@@ -255,10 +246,9 @@ def remove_warn(user_id, chat_id):
         new_count = current_count - 1
     else:
         new_count = 0
-
+    
     conn.close()
     return new_count
-
 
 def get_warn_count(user_id, chat_id):
     conn = sqlite3.connect('rp_bot.db')
@@ -268,16 +258,14 @@ def get_warn_count(user_id, chat_id):
     conn.close()
     return count
 
-
 # Функции для правил чата
 def set_chat_rules(chat_id, rules_text, set_by):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
     cursor.execute('INSERT OR REPLACE INTO chat_rules (chat_id, rules_text, set_by) VALUES (?, ?, ?)',
-                   (chat_id, rules_text, set_by))
+                  (chat_id, rules_text, set_by))
     conn.commit()
     conn.close()
-
 
 def get_chat_rules(chat_id):
     conn = sqlite3.connect('rp_bot.db')
@@ -287,7 +275,6 @@ def get_chat_rules(chat_id):
     conn.close()
     return result[0] if result else None
 
-
 def remove_chat_rules(chat_id):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
@@ -295,65 +282,59 @@ def remove_chat_rules(chat_id):
     conn.commit()
     conn.close()
 
-
 # Функции для профилей пользователей
 def get_user_profile(user_id, chat_id):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT shards, last_dig_time FROM user_profiles WHERE user_id = ? AND chat_id = ?',
-                   (user_id, chat_id))
+    cursor.execute('SELECT shards, last_dig_time FROM user_profiles WHERE user_id = ? AND chat_id = ?', (user_id, chat_id))
     result = cursor.fetchone()
-
+    
     if not result:
         # Создаем профиль, если его нет
         cursor.execute('INSERT INTO user_profiles (user_id, chat_id, shards, last_dig_time) VALUES (?, ?, 0, NULL)',
-                       (user_id, chat_id))
+                      (user_id, chat_id))
         conn.commit()
         shards = 0
         last_dig_time = None
     else:
         shards, last_dig_time = result
-
+    
     # Получаем предметы пользователя
     cursor.execute('SELECT item_emoji, item_name FROM user_items WHERE user_id = ? AND chat_id = ?', (user_id, chat_id))
     items = cursor.fetchall()
-
+    
     conn.close()
     return shards, last_dig_time, items
-
 
 def update_user_shards(user_id, chat_id, shards):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
     cursor.execute('INSERT OR REPLACE INTO user_profiles (user_id, chat_id, shards) VALUES (?, ?, ?)',
-                   (user_id, chat_id, shards))
+                  (user_id, chat_id, shards))
     conn.commit()
     conn.close()
-
 
 def update_dig_time(user_id, chat_id):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
     cursor.execute('UPDATE user_profiles SET last_dig_time = CURRENT_TIMESTAMP WHERE user_id = ? AND chat_id = ?',
-                   (user_id, chat_id))
+                  (user_id, chat_id))
     conn.commit()
     conn.close()
-
 
 def add_user_item(user_id, chat_id, item_emoji, item_name):
     conn = sqlite3.connect('rp_bot.db')
     cursor = conn.cursor()
     cursor.execute('INSERT OR IGNORE INTO user_items (user_id, chat_id, item_emoji, item_name) VALUES (?, ?, ?, ?)',
-                   (user_id, chat_id, item_emoji, item_name))
+                  (user_id, chat_id, item_emoji, item_name))
     conn.commit()
     conn.close()
-
 
 # Проверка является ли пользователь администратором
 async def is_admin(update: Update, context: CallbackContext, user_id: int = None) -> bool:
     if user_id is None:
         user_id = update.effective_user.id
-
+    
     chat_id = update.effective_chat.id
     try:
         chat_member = await context.bot.get_chat_member(chat_id, user_id)
@@ -362,81 +343,77 @@ async def is_admin(update: Update, context: CallbackContext, user_id: int = None
         logger.error(f"Admin check error: {e}")
         return False
 
-
 # Функция для автоматического размута
 async def schedule_unmute(bot, user_id, chat_id, user_name, seconds):
     """Создает задачу для автоматического размута через указанное время"""
     try:
         # Создаем уникальный ключ для задачи
         task_key = f"{user_id}_{chat_id}"
-
+        
         # Если уже есть задача для этого пользователя, отменяем её
         if task_key in unmute_tasks:
             unmute_tasks[task_key].cancel()
             logger.info(f"Cancelled existing unmute task for user {user_name}")
-
+        
         # Создаем новую задачу
         task = asyncio.create_task(
             auto_unmute_user(bot, user_id, chat_id, user_name, seconds)
         )
         unmute_tasks[task_key] = task
-
+        
         logger.info(f"Scheduled auto-unmute for user {user_name} in {seconds} seconds")
-
+        
     except Exception as e:
         logger.error(f"Error scheduling unmute: {e}")
-
 
 async def auto_unmute_user(bot, user_id, chat_id, user_name, seconds):
     """Автоматически размучивает пользователя через указанное время"""
     try:
         # Ждем указанное количество секунд
         await asyncio.sleep(seconds)
-
+        
         # Восстанавливаем права
         unmute_permissions = ChatPermissions(
             can_send_messages=True
         )
-
+        
         await bot.restrict_chat_member(
             chat_id=chat_id,
             user_id=user_id,
             permissions=unmute_permissions
         )
-
+        
         # Удаляем из базы
         remove_mute(user_id, chat_id)
-
+        
         # Отправляем уведомление
         await bot.send_message(
             chat_id=chat_id,
             text=f"🔊 Пользователь {user_name} автоматически размучен!"
         )
-
+        
         # Удаляем задачу из словаря
         task_key = f"{user_id}_{chat_id}"
         if task_key in unmute_tasks:
             del unmute_tasks[task_key]
-
+        
         logger.info(f"Successfully auto-unmuted user {user_name}")
-
+        
     except Exception as e:
         logger.error(f"Error in auto unmute for user {user_name}: {e}")
         # Если не удалось размутить, все равно удаляем из базы
         remove_mute(user_id, chat_id)
 
-
 # Команда /start
 async def start(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
-
+    
     # Кнопка для добавления в чат
     keyboard = [
-        [InlineKeyboardButton("➕ Добавить в чат",
-                              url=f"https://t.me/{(await context.bot.get_me()).username}?startgroup=true")]
+        [InlineKeyboardButton("➕ Добавить в чат", url=f"https://t.me/{(await context.bot.get_me()).username}?startgroup=true")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
+    
     await update.message.reply_text(
         f"🎭 Привет, {user.first_name}! Я Карни - бот для RP-общения и модерации.\n\n"
         "✨ <b>Что я умею:</b>\n"
@@ -456,7 +433,6 @@ async def start(update: Update, context: CallbackContext) -> None:
         parse_mode='HTML'
     )
 
-
 # Меню управления
 async def menu(update: Update, context: CallbackContext) -> None:
     keyboard = [
@@ -465,12 +441,10 @@ async def menu(update: Update, context: CallbackContext) -> None:
         [InlineKeyboardButton("🛠 Модерация", callback_data="moderation_help")],
         [InlineKeyboardButton("👤 Профиль", callback_data="show_profile_menu")],
         [InlineKeyboardButton("🛒 Магазин", callback_data="show_shop_menu_1")],
-        [InlineKeyboardButton("➕ Добавить в чат",
-                              url=f"https://t.me/{(await context.bot.get_me()).username}?startgroup=true")]
+        [InlineKeyboardButton("➕ Добавить в чат", url=f"https://t.me/{(await context.bot.get_me()).username}?startgroup=true")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("🎮 <b>Меню управления Карни</b>", reply_markup=reply_markup, parse_mode='HTML')
-
 
 # Обработчик кнопок меню
 async def button_handler(update: Update, context: CallbackContext) -> None:
@@ -538,30 +512,29 @@ async def button_handler(update: Update, context: CallbackContext) -> None:
     elif query.data == "back_to_menu":
         await back_to_menu(update, context)
 
-
 # Функция для показа профиля из меню
 async def show_profile_from_menu(update: Update, context: CallbackContext):
     query = update.callback_query
     user = query.from_user
     chat_id = query.message.chat.id  # Исправлено: получаем chat_id из сообщения
-
+    
     # Получаем данные профиля
     shards, last_dig_time, items = get_user_profile(user.id, chat_id)
-
+    
     # Проверяем является ли пользователь админом
     is_user_admin = await is_admin(update, context, user.id)
     role = "👑 Администратор" if is_user_admin else "👤 Участник"
-
+    
     # Получаем количество варнов
     warn_count = get_warn_count(user.id, chat_id)
-
+    
     # Формируем текст профиля
     profile_text = f"👤 <b>Профиль {user.first_name}</b>\n\n"
     profile_text += f"📛 <b>Ник:</b> {user.first_name}\n"
     profile_text += f"🎖️ <b>Должность:</b> {role}\n"
     profile_text += f"⚠️ <b>Варны:</b> {warn_count}/3\n"
     profile_text += f"💎 <b>Осколков:</b> {shards}\n\n"
-
+    
     if items:
         profile_text += "🎁 <b>Предметы:</b>\n"
         for item_emoji, item_name in items:
@@ -569,21 +542,19 @@ async def show_profile_from_menu(update: Update, context: CallbackContext):
     else:
         profile_text += "🎁 <b>Предметы:</b> Пока нет предметов\n"
         profile_text += "🛒 Загляни в магазин !магазин"
-
+    
     keyboard = [
         [InlineKeyboardButton("🛒 Магазин", callback_data="show_shop_menu_1")],
         [InlineKeyboardButton("🔙 Назад в меню", callback_data="back_to_menu")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
+    
     await query.edit_message_text(profile_text, reply_markup=reply_markup, parse_mode='HTML')
-
 
 # Функция для показа магазина из меню
 async def show_shop_page_from_menu(update: Update, context: CallbackContext, page: int):
     query = update.callback_query
     await show_shop_page(update, context, page, from_menu=True)
-
 
 async def show_shop_page(update: Update, context: CallbackContext, page: int, from_menu=False):
     """Показывает страницу магазина"""
@@ -593,10 +564,10 @@ async def show_shop_page(update: Update, context: CallbackContext, page: int, fr
         else:
             await update.message.reply_text("❌ Такой страницы магазина не существует.")
         return
-
+    
     items = SHOP_ITEMS[page]
     keyboard = []
-
+    
     # Создаем кнопки для предметов (максимум 4 в ряд)
     row = []
     for i, item in enumerate(items):
@@ -604,60 +575,59 @@ async def show_shop_page(update: Update, context: CallbackContext, page: int, fr
             keyboard.append(row)
             row = []
         row.append(InlineKeyboardButton(
-            f"{item['emoji']} - {item['price']}💎",
+            f"{item['emoji']} - {item['price']}💎", 
             callback_data=f"buy_item_{page}_{i}"
         ))
-
+    
     if row:  # Добавляем оставшиеся кнопки
         keyboard.append(row)
-
+    
     # Кнопки навигации
     nav_buttons = []
     if page > 1:
-        nav_buttons.append(InlineKeyboardButton("⬅️ Назад", callback_data=f"show_shop_{page - 1}"))
-
+        nav_buttons.append(InlineKeyboardButton("⬅️ Назад", callback_data=f"show_shop_{page-1}"))
+    
     if page < len(SHOP_ITEMS):
-        nav_buttons.append(InlineKeyboardButton("Вперед ➡️", callback_data=f"show_shop_{page + 1}"))
-
+        nav_buttons.append(InlineKeyboardButton("Вперед ➡️", callback_data=f"show_shop_{page+1}"))
+    
     if nav_buttons:
         keyboard.append(nav_buttons)
-
+    
     # Кнопка профиля и возврата в меню
     menu_buttons = []
     menu_buttons.append(InlineKeyboardButton("👤 Мой профиль", callback_data="show_profile_menu"))
     if from_menu:
         menu_buttons.append(InlineKeyboardButton("🔙 Назад в меню", callback_data="back_to_menu"))
-
+    
     keyboard.append(menu_buttons)
-
+    
     reply_markup = InlineKeyboardMarkup(keyboard)
-
+    
     page_titles = {
         1: "♈ Знаки зодиака",
-        2: "💝 Эмоции и символы",
+        2: "💝 Эмоции и символы", 
         3: "✨ Символы и звезды",
         4: "🌿 Природа и еда",
         5: "🏆 Редкие предметы"
     }
-
+    
     text = (
         f"🛒 <b>Магазин предметов</b> - {page_titles[page]}\n\n"
         f"📄 Страница {page}/{len(SHOP_ITEMS)}\n"
         f"💎 Для покупки нужны осколки\n"
         f"🔄 Используй !копать каждые 12 часов"
     )
-
+    
     if hasattr(update, 'callback_query'):
         await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode='HTML')
     else:
         await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='HTML')
 
-
 # Команда для возврата в меню
 async def back_to_menu(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
-
+    
     # Создаем меню заново
     keyboard = [
         [InlineKeyboardButton("📋 Список команд", callback_data="list_commands")],
@@ -665,12 +635,10 @@ async def back_to_menu(update: Update, context: CallbackContext):
         [InlineKeyboardButton("🛠 Модерация", callback_data="moderation_help")],
         [InlineKeyboardButton("👤 Профиль", callback_data="show_profile_menu")],
         [InlineKeyboardButton("🛒 Магазин", callback_data="show_shop_menu_1")],
-        [InlineKeyboardButton("➕ Добавить в чат",
-                              url=f"https://t.me/{(await context.bot.get_me()).username}?startgroup=true")]
+        [InlineKeyboardButton("➕ Добавить в чат", url=f"https://t.me/{(await context.bot.get_me()).username}?startgroup=true")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text("🎮 <b>Меню управления Карни</b>", reply_markup=reply_markup, parse_mode='HTML')
-
 
 # Команда для добавления новой RP-команды
 async def add_command(update: Update, context: CallbackContext) -> None:
@@ -687,12 +655,11 @@ async def add_command(update: Update, context: CallbackContext) -> None:
     trigger_word = context.args[2]
 
     success = add_rp_command(emoji, action_text, trigger_word)
-
+    
     if success:
         await update.message.reply_text(f"✅ Команда добавлена: {emoji} {action_text} - триггер: '{trigger_word}'")
     else:
         await update.message.reply_text("❌ Ошибка: такое триггер-слово уже существует!")
-
 
 # Команда для просмотра всех RP-команд
 async def list_commands(update: Update, context: CallbackContext) -> None:
@@ -705,17 +672,15 @@ async def list_commands(update: Update, context: CallbackContext) -> None:
     else:
         await update.message.reply_text("❌ Нет добавленных RP-команд")
 
-
 # Команда !правила
 async def show_rules(update: Update, context: CallbackContext) -> None:
     chat_id = update.effective_chat.id
     rules = get_chat_rules(chat_id)
-
+    
     if rules:
         await update.message.reply_text(f"📜 <b>Правила чата:</b>\n\n{rules}", parse_mode='HTML')
     else:
         await update.message.reply_text("ℹ️ Правила для этого чата еще не установлены.")
-
 
 # Команда +правила
 async def add_rules(update: Update, context: CallbackContext) -> None:
@@ -731,17 +696,16 @@ async def add_rules(update: Update, context: CallbackContext) -> None:
 
     # Извлекаем текст правил (удаляем "+правила " из начала)
     rules_text = message_text[9:].strip()
-
+    
     if not rules_text:
         await update.message.reply_text("❌ Укажите текст правил после команды: +правила [текст правил]")
         return
 
     chat_id = update.effective_chat.id
     user_id = update.effective_user.id
-
+    
     set_chat_rules(chat_id, rules_text, user_id)
     await update.message.reply_text("✅ Правила чата установлены!")
-
 
 # Команда -правила
 async def remove_rules(update: Update, context: CallbackContext) -> None:
@@ -753,29 +717,28 @@ async def remove_rules(update: Update, context: CallbackContext) -> None:
     remove_chat_rules(chat_id)
     await update.message.reply_text("✅ Правила чата удалены!")
 
-
 # Команда !профиль
 async def show_profile(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
     chat_id = update.effective_chat.id
-
+    
     # Получаем данные профиля
     shards, last_dig_time, items = get_user_profile(user.id, chat_id)
-
+    
     # Проверяем является ли пользователь админом
     is_user_admin = await is_admin(update, context, user.id)
     role = "👑 Администратор" if is_user_admin else "👤 Участник"
-
+    
     # Получаем количество варнов
     warn_count = get_warn_count(user.id, chat_id)
-
+    
     # Формируем текст профиля
     profile_text = f"👤 <b>Профиль {user.first_name}</b>\n\n"
     profile_text += f"📛 <b>Ник:</b> {user.first_name}\n"
     profile_text += f"🎖️ <b>Должность:</b> {role}\n"
     profile_text += f"⚠️ <b>Варны:</b> {warn_count}/3\n"
     profile_text += f"💎 <b>Осколков:</b> {shards}\n\n"
-
+    
     if items:
         profile_text += "🎁 <b>Предметы:</b>\n"
         for item_emoji, item_name in items:
@@ -783,23 +746,22 @@ async def show_profile(update: Update, context: CallbackContext) -> None:
     else:
         profile_text += "🎁 <b>Предметы:</b> Пока нет предметов\n"
         profile_text += "🛒 Загляни в магазин !магазин"
-
+    
     await update.message.reply_text(profile_text, parse_mode='HTML')
-
 
 # Команда !копать
 async def dig_shards(update: Update, context: CallbackContext) -> None:
     user = update.effective_user
     chat_id = update.effective_chat.id
-
+    
     shards, last_dig_time, items = get_user_profile(user.id, chat_id)
-
+    
     # Проверяем, можно ли копать
     if last_dig_time:
         last_dig = datetime.datetime.fromisoformat(last_dig_time)
         time_since_last_dig = datetime.datetime.now() - last_dig
         hours_passed = time_since_last_dig.total_seconds() / 3600
-
+        
         if hours_passed < 12:
             hours_left = 12 - hours_passed
             await update.message.reply_text(
@@ -807,7 +769,7 @@ async def dig_shards(update: Update, context: CallbackContext) -> None:
                 f"Следующая возможность через: {hours_left:.1f} часов"
             )
             return
-
+    
     # Генерируем случайное количество осколков
     found_shards = random.randint(1, 50)
     if found_shards == 50:
@@ -819,12 +781,12 @@ async def dig_shards(update: Update, context: CallbackContext) -> None:
         message = f"👍 <b>Хорошо!</b> Вы нашли {found_shards} осколков! 💫"
     else:
         message = f"🔍 Вы нашли {found_shards} осколков 💎"
-
+    
     # Обновляем профиль
     new_shards = shards + found_shards
     update_user_shards(user.id, chat_id, new_shards)
     update_dig_time(user.id, chat_id)
-
+    
     await update.message.reply_text(
         f"{message}\n"
         f"💎 <b>Теперь у вас:</b> {new_shards} осколков\n\n"
@@ -832,28 +794,76 @@ async def dig_shards(update: Update, context: CallbackContext) -> None:
         parse_mode='HTML'
     )
 
-
-# Команда !магазин
+# Команда !магазин - ПРОСТАЯ ФУНКЦИЯ КОТОРАЯ РАБОТАЕТ
 async def show_shop(update: Update, context: CallbackContext) -> None:
-    await show_shop_page(update, context, 1)
-
+    """Простая функция для показа магазина"""
+    page = 1
+    items = SHOP_ITEMS[page]
+    keyboard = []
+    
+    # Создаем кнопки для предметов
+    row = []
+    for i, item in enumerate(items):
+        if len(row) == 2:
+            keyboard.append(row)
+            row = []
+        row.append(InlineKeyboardButton(
+            f"{item['emoji']} - {item['price']}💎", 
+            callback_data=f"buy_item_{page}_{i}"
+        ))
+    
+    if row:
+        keyboard.append(row)
+    
+    # Кнопки навигации
+    nav_buttons = []
+    if page > 1:
+        nav_buttons.append(InlineKeyboardButton("⬅️ Назад", callback_data=f"show_shop_{page-1}"))
+    
+    if page < len(SHOP_ITEMS):
+        nav_buttons.append(InlineKeyboardButton("Вперед ➡️", callback_data=f"show_shop_{page+1}"))
+    
+    if nav_buttons:
+        keyboard.append(nav_buttons)
+    
+    # Кнопка профиля
+    keyboard.append([InlineKeyboardButton("👤 Мой профиль", callback_data="show_profile_menu")])
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    page_titles = {
+        1: "♈ Знаки зодиака",
+        2: "💝 Эмоции и символы", 
+        3: "✨ Символы и звезды",
+        4: "🌿 Природа и еда",
+        5: "🏆 Редкие предметы"
+    }
+    
+    text = (
+        f"🛒 <b>Магазин предметов</b> - {page_titles[page]}\n\n"
+        f"📄 Страница {page}/{len(SHOP_ITEMS)}\n"
+        f"💎 Для покупки нужны осколки\n"
+        f"🔄 Используй !копать каждые 12 часов"
+    )
+    
+    await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='HTML')
 
 async def buy_item(update: Update, context: CallbackContext, page: int, item_index: int):
     """Покупка предмета в магазине"""
     query = update.callback_query
     await query.answer()
-
+    
     if page not in SHOP_ITEMS or item_index >= len(SHOP_ITEMS[page]):
         await query.edit_message_text("❌ Этот предмет больше не доступен.")
         return
-
+    
     item = SHOP_ITEMS[page][item_index]
     user = query.from_user
-    chat_id = query.message.chat.id  # Исправлено: получаем chat_id из сообщения
-
+    chat_id = query.message.chat.id
+    
     # Получаем текущие осколки пользователя
     shards, last_dig_time, items = get_user_profile(user.id, chat_id)
-
+    
     # Проверяем, хватает ли осколков
     if shards < item['price']:
         await query.edit_message_text(
@@ -863,18 +873,18 @@ async def buy_item(update: Update, context: CallbackContext, page: int, item_ind
             f"🔄 Используй !копать для получения осколков"
         )
         return
-
+    
     # Проверяем, есть ли уже этот предмет
     user_items = [item_emoji for item_emoji, item_name in items]
     if item['emoji'] in user_items:
         await query.edit_message_text(f"❌ У вас уже есть предмет {item['emoji']}!")
         return
-
+    
     # Покупаем предмет
     new_shards = shards - item['price']
     update_user_shards(user.id, chat_id, new_shards)
     add_user_item(user.id, chat_id, item['emoji'], item['name'])
-
+    
     await query.edit_message_text(
         f"🎉 <b>Поздравляем с покупкой!</b>\n\n"
         f"🛍️ <b>Куплено:</b> {item['emoji']} {item['name']}\n"
@@ -883,7 +893,6 @@ async def buy_item(update: Update, context: CallbackContext, page: int, item_ind
         f"✨ Предмет добавлен в ваш профиль!",
         parse_mode='HTML'
     )
-
 
 # Обработчик мутов
 async def handle_mute(update: Update, context: CallbackContext, mute_text: str) -> None:
@@ -902,7 +911,7 @@ async def handle_mute(update: Update, context: CallbackContext, mute_text: str) 
     # Парсим время мута
     pattern = r'мут\s+(\d+)\s*(секунд[ыу]?|минут[ыу]?|час[аов]?|день|дня|дней|недел[яюи])'
     match = re.search(pattern, mute_text.lower())
-
+    
     if not match:
         await update.message.reply_text(
             "❌ Неправильный формат команды!\n"
@@ -938,45 +947,44 @@ async def handle_mute(update: Update, context: CallbackContext, mute_text: str) 
 
     # Добавляем мут в базу
     add_mute(target_user_id, chat_id, unmute_time)
-
+    
     # Ограничиваем права пользователя
     try:
         until_date = int(unmute_time.timestamp())
-
+        
         # Минимальный набор параметров для старых версий
         mute_permissions = ChatPermissions(
             can_send_messages=False
         )
-
+        
         await context.bot.restrict_chat_member(
             chat_id=chat_id,
             user_id=target_user_id,
             permissions=mute_permissions,
             until_date=until_date
         )
-
+        
         # Запускаем задачу авторазмута
         await schedule_unmute(
-            context.bot,
-            target_user_id,
-            chat_id,
-            target_user.first_name,
+            context.bot, 
+            target_user_id, 
+            chat_id, 
+            target_user.first_name, 
             seconds
         )
-
+        
         time_display = f"{amount} {time_unit}"
         await update.message.reply_text(
             f"🔇 Пользователь {target_user.first_name} заглушен на {time_display}!\n"
             f"⏰ Авторазмут через {seconds} секунд"
         )
-
+        
         # Удаляем команду мут
         await update.message.delete()
-
+        
     except Exception as e:
         await update.message.reply_text(f"❌ Ошибка при выдаче мута: {e}")
         logger.error(f"Mute error: {e}")
-
 
 # Обработчик размута
 async def handle_unmute(update: Update, context: CallbackContext) -> None:
@@ -997,32 +1005,31 @@ async def handle_unmute(update: Update, context: CallbackContext) -> None:
         unmute_permissions = ChatPermissions(
             can_send_messages=True
         )
-
+        
         await context.bot.restrict_chat_member(
             chat_id=chat_id,
             user_id=target_user_id,
             permissions=unmute_permissions
         )
-
+        
         # Удаляем мут из базы
         remove_mute(target_user_id, chat_id)
-
+        
         # Отменяем задачу авторазмута, если она есть
         task_key = f"{target_user_id}_{chat_id}"
         if task_key in unmute_tasks:
             unmute_tasks[task_key].cancel()
             del unmute_tasks[task_key]
             logger.info(f"Cancelled auto-unmute task for user {target_user.first_name}")
-
+        
         await update.message.reply_text(f"🔊 Пользователь {target_user.first_name} размучен!")
-
+        
         # Удаляем команду размут
         await update.message.delete()
-
+        
     except Exception as e:
         await update.message.reply_text(f"❌ Ошибка при размуте пользователя: {e}")
         logger.error(f"Unmute error: {e}")
-
 
 # Обработчик кика
 async def handle_kick(update: Update, context: CallbackContext) -> None:
@@ -1041,16 +1048,15 @@ async def handle_kick(update: Update, context: CallbackContext) -> None:
     try:
         await context.bot.ban_chat_member(chat_id, target_user_id)
         await context.bot.unban_chat_member(chat_id, target_user_id)
-
+        
         await update.message.reply_text(f"👢 Пользователь {target_user.first_name} кикнут из чата!")
-
+        
         # Удаляем команду кик
         await update.message.delete()
-
+        
     except Exception as e:
         await update.message.reply_text(f"❌ Ошибка при кике пользователя: {e}")
         logger.error(f"Kick error: {e}")
-
 
 # Обработчик варнов
 async def handle_warn(update: Update, context: CallbackContext, action: str) -> None:
@@ -1070,11 +1076,11 @@ async def handle_warn(update: Update, context: CallbackContext, action: str) -> 
     if action == "+":
         # Добавляем варн
         warn_count = add_warn(target_user_id, chat_id, admin_id)
-
+        
         await update.message.reply_text(
             f"⚠️ Выдан варн {target_user.first_name} | {warn_count}/3"
         )
-
+        
         # Проверяем на автоматический кик
         if warn_count >= 3:
             try:
@@ -1091,24 +1097,23 @@ async def handle_warn(update: Update, context: CallbackContext, action: str) -> 
                 conn.close()
             except Exception as e:
                 logger.error(f"Auto-kick error: {e}")
-
+    
     elif action == "-":
         # Снимаем варн
         warn_count = remove_warn(target_user_id, chat_id)
-
+        
         await update.message.reply_text(
             f"✅ Снят варн {target_user.first_name} | {warn_count}/3"
         )
-
+    
     # Удаляем команду варн
     await update.message.delete()
-
 
 # Проверка мута при новом сообщении
 async def check_mute(update: Update, context: CallbackContext) -> None:
     user_id = update.effective_user.id
     chat_id = update.effective_chat.id
-
+    
     mute_info = get_mute(user_id, chat_id)
     if mute_info:
         unmute_time = datetime.datetime.fromisoformat(mute_info[0])
@@ -1122,103 +1127,101 @@ async def check_mute(update: Update, context: CallbackContext) -> None:
             # Время мута истекло, удаляем из базы
             remove_mute(user_id, chat_id)
 
-
 # Обработчик всех сообщений
 async def handle_message(update: Update, context: CallbackContext) -> None:
     # Пропускаем команды
     if update.message.text and update.message.text.startswith('/'):
         return
-
+    
     message_text = update.message.text.strip() if update.message.text else ""
-
+    
     # Проверяем мут (для всех пользователей)
     await check_mute(update, context)
-
+    
     # Обработка специальных команд
     if message_text.lower() == '!правила':
         await show_rules(update, context)
         return
-
+    
     elif message_text.lower() == '!профиль':
         await show_profile(update, context)
         return
-
+    
     elif message_text.lower() == '!копать':
         await dig_shards(update, context)
         return
-
+    
+    # ИСПРАВЛЕНИЕ 3: Команда !магазин теперь работает ПРОСТО И ПОНЯТНО
     elif message_text.lower() == '!магазин':
         await show_shop(update, context)
         return
-
+    
     # Обработка модерационных команд (только для админов)
     if message_text.lower().startswith('мут'):
         await handle_mute(update, context, message_text)
         return
-
+    
     elif message_text.lower() == 'размут':
         await handle_unmute(update, context)
         return
-
+    
     elif message_text.lower() == 'кик':
         await handle_kick(update, context)
         return
-
+    
     elif message_text.lower() == '+варн':
         await handle_warn(update, context, "+")
         return
-
+    
     elif message_text.lower() == '-варн':
         await handle_warn(update, context, "-")
         return
-
+    
     # ИСПРАВЛЕНИЕ 2: Обработка команд правил с учетом полного текста
     elif message_text.lower().startswith('+правила'):
         await add_rules(update, context)
         return
-
+    
     elif message_text.lower() == '-правила':
         await remove_rules(update, context)
         return
-
+    
     # Обработка RP-команд (для всех пользователей)
     elif update.message.reply_to_message and message_text:
         rp_command = get_rp_command(message_text.lower())
-
+        
         if rp_command:
             emoji, action_text = rp_command
-
+            
             # Получаем информацию об отправителе исходного сообщения
             original_sender = update.message.reply_to_message.from_user
             original_sender_name = original_sender.first_name
-
+            
             # Получаем информацию об отправителе RP-действия
             action_sender = update.message.from_user
             action_sender_name = action_sender.first_name
-
+            
             # Создаем RP-сообщение
             rp_message = f"{emoji} | {action_sender_name} {action_text} {original_sender_name}"
-
+            
             # Отправляем сообщение как ответ на исходное сообщение человека
             await update.message.reply_to_message.reply_text(rp_message)
-
+            
             # Удаляем исходное сообщение с триггером
             try:
                 await update.message.delete()
             except Exception as e:
                 logger.warning(f"Не удалось удалить сообщение: {e}")
 
-
 # Обработчик ошибок
 async def error_handler(update: Update, context: CallbackContext) -> None:
     logger.error(f"Ошибка: {context.error}")
-
 
 # Основная функция
 def main() -> None:
     # Инициализация базы данных
     init_db()
-
+    
     # Создание приложения
     application = Application.builder().token(TOKEN).build()
 
@@ -1228,17 +1231,16 @@ def main() -> None:
     application.add_handler(CommandHandler("list", list_commands))
     application.add_handler(CommandHandler("addcommand", add_command))
     application.add_handler(CallbackQueryHandler(button_handler))
-
+    
     # Обработчик текстовых сообщений (должен быть последним)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
+    
     # Обработчик ошибок
     application.add_error_handler(error_handler)
 
     # Запуск бота
     print("🎭 Бот Карни запущен! Теперь с системой профилей и магазином!")
     application.run_polling()
-
 
 if __name__ == '__main__':
     main()
